@@ -31,10 +31,14 @@ const upload = multer({ storage: storage });
 
 // Configuração do MySQL
 const connection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
+     host: 'mysql-104b5784-amanimoyo.l.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_7mS2Mw5mucKOdLbtk2L',
     database: 'amanimoyo',
+    port: 21180,                         // fornecido pelo Aiven (pode ser diferente!)
+    ssl: {
+       rejectUnauthorized: false,
+    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -87,71 +91,6 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
-
-
-// app.post('/api/login', async (req, res) => {
-//     const { email, password } = req.body;
-//     console.log('Dados recebidos do front-end:', email, password);
-
-
-  
-//     // Busca o usuário no banco de dados
-
-//    const query = 'SELECT * FROM usuarios WHERE email = ?';
-    
-//     connection.query(query, [email], async (error, results) => {
-//         console.log("kwenda1")
-//         if (error) {
-            
-//             return res.status(500).json({ error: 'Erro interno do servidor' });
-//         }
-        
-//         if (results.length === 0) {
-//             return res.status(401).json({ error: 'Usuário não encontrado' });
-//         }
-        
-//         const usuario = results[0];
-//         console.log(usuario);
-
-        
-//         // Verifica a senha
-//             // Compare o hash da senha enviado pelo front com o hash armazenado no banco de dados
-//             const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-//             if (usuario.senha === hashedPassword) {
-//                 // Login bem-sucedido
-//                  res.status(200).json({ success: true, message: 'Login bem-sucedido' });
-                
-//             } else {
-//                 // Senha incorreta
-//                 return res.status(401).json({ error: 'Senha incorreta' });
-               
-//             }
-
-//         // const senhaCorreta = await bcrypt.compare(password, usuario.senha);
-        
-//         // if (!senhaCorreta) {
-//         //     return res.status(401).json({ error: 'Senha incorreta' });
-//         // }
-//                 // Gera o token JWT
-//                 const token = jwt.sign(
-//                     { userId: usuario.id, email: usuario.email },
-//                     'sua_chave_secreta',
-//                     { expiresIn: '24h' }
-//                 );
-                
-//                 res.json({
-//                     token,
-//                     usuario: {
-//                         id: usuario.id,
-//                         nome: usuario.nome,
-//                         email: usuario.email
-//                     }
-//                 });
-      
-        
-//     });
-// });
-
 
 
 
