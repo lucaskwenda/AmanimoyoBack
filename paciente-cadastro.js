@@ -2,15 +2,18 @@ import express from 'express';
 import mysql from 'mysql2';
 import cors from 'cors';
 
+
+const router = express.Router();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Configuração do banco de dados
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
+    host: 'mysql-104b5784-amanimoyo.l.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_7mS2Mw5mucKOdLbtk2L',
     database: 'amanimoyo',
     waitForConnections: true,
     connectionLimit: 10,
@@ -18,7 +21,7 @@ const pool = mysql.createPool({
 });
 
 // Rota para cadastro
-app.post('/api/cadastropaciente', (req, res) => {
+router.post('/', (req, res) => {
     console.log('Recebida requisição de cadastro');
     
     const { 
@@ -87,39 +90,7 @@ app.post('/api/cadastropaciente', (req, res) => {
                     const usuario_id = usuarioResult.insertId;
                     console.log('ID do usuário criado:', usuario_id);
 
-                    // // Query para inserir paciente
-                    // const patientQuery = 'INSERT INTO pacientes (usuario_id, transtorno, biografia, objetivos) VALUES (?, ?, ?, ?)';
-                    // const patientValues = [usuario_id, transtorno, sintomas, objetivos];
-
-                    // console.log('Executando query de paciente:', patientQuery, patientValues);
-
-                    // connection.query(
-                    //     patientQuery,
-                    //     patientValues,
-                    //     (err, pacienteResult) => {
-                    //         if (err) {
-                    //             console.error('Erro na inserção do paciente:', err);
-                    //             return connection.rollback(() => {
-                    //                 connection.release();
-                    //                 res.status(500).json({ 
-                    //                     error: 'Erro ao inserir paciente',
-                    //                     details: err.message 
-                    //                 });
-                    //             });
-                    //         }
-
-                    //         connection.commit((err) => {
-                    //             if (err) {
-                    //                 console.error('Erro no commit da transação:', err);
-                    //                 return connection.rollback(() => {
-                    //                     connection.release();
-                    //                     res.status(500).json({ 
-                    //                         error: 'Erro ao finalizar transação',
-                    //                         details: err.message 
-                    //                     });
-                    //                 });
-                    //             }
-
+               
                     //             connection.release();
                                 res.status(201).json({ 
                                     message: 'Cadastro realizado com sucesso!',
@@ -159,9 +130,9 @@ function validateRegistrationInput(req, res, next) {
 // Aplicar middleware de validação
 app.use('/api/cadastropaciente', validateRegistrationInput);
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-});
-
-export default app;
+// const PORT = process.env.PORT || 4000;
+// app.listen(PORT, () => {
+//     console.log(`Servidor rodando na porta ${PORT}`);
+// });
+export default router;
+// export default app;
