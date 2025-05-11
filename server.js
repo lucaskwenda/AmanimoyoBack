@@ -604,6 +604,18 @@ app.post('/api/consultas', async (req, res) => {
 
 
 // Rota para cadastro
+// Configuração do banco de dados
+const pool1 = mysql.createPool({
+    host: 'mysql-104b5784-amanimoyo.l.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_7mS2Mw5mucKOdLbtk2L',
+    database: 'amanimoyo',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+// Rota para cadastro
 app.post('/api/cadastropaciente', (req, res) => {
     console.log('Recebida requisição de cadastro');
     
@@ -621,7 +633,7 @@ app.post('/api/cadastropaciente', (req, res) => {
     
     console.log("Dados recebidos:", req.body);
     
-    pool.getConnection((err, connection) => {
+    pool1.getConnection((err, connection) => {
         if (err) {
             console.error('Erro ao conectar ao banco:', err);
             return res.status(500).json({ 
@@ -638,61 +650,78 @@ app.post('/api/cadastropaciente', (req, res) => {
                     details: err.message 
                 });
             }
+            connection.beginTransaction();
 
-            const userQuery = `
-                INSERT INTO usuarios (nome, email, phone, senha, tipo, genero, data_nascimento, transtorno, biografia)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+            // Query para inserir usuário
+            const userQuery = 'INSERT INTO usuarios (nome, email, phone, senha, tipo, genero, data_nascimento,transtorno, biografia) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
             const userValues = [nome, email, telefone, senha, 'paciente', genero, data_nascimento, transtorno, biografia];
 
             console.log('Executando query de usuário:', userQuery, userValues);
 
-            connection.query(userQuery, userValues, (err, usuarioResult) => {
-                if (err) {
-                    return connection.rollback(() => {
-                        connection.release();
-                        console.error('Erro na inserção do usuário:', err);
-                        if (err.code === 'ER_DUP_ENTRY') {
-                            res.status(409).json({ 
-                                error: 'Email já cadastrado',
-                                details: 'Um usuário com este email já existe no sistema' 
-                            });
-                        } else {
-                            res.status(500).json({ 
-                                error: 'Erro ao inserir usuário',
-                                details: err.message 
-                            });
-                        }
-                    });
-                }
+            connection.commit(); // Finaliza a transação corretamente
 
-                const usuario_id = usuarioResult.insertId;
-                console.log('ID do usuário criado:', usuario_id);
-
-                connection.commit((err) => {
+            connection.query(
+                userQuery,
+                userValues,
+                (err, usuarioResult) => {
                     if (err) {
                         return connection.rollback(() => {
                             connection.release();
-                            console.error('Erro ao finalizar transação:', err);
-                            res.status(500).json({ 
-                                error: 'Erro ao finalizar cadastro',
-                                details: err.message 
-                            });
+                            console.error('Erro na inserção do usuário:', err);
+                            if (err.code === 'ER_DUP_ENTRY') {
+                                res.status(409).json({ 
+                                    error: 'Email já cadastrado',
+                                    details: 'Um usuário com este email já existe no sistema' 
+                                });
+                            } else {
+                                res.status(500).json({ 
+                                    error: 'Erro ao inserir usuário',
+                                    details: err.message 
+                                });
+                            }
                         });
                     }
 
-                    connection.release();
-                    console.log('Transação finalizada com sucesso');
-                    res.status(201).json({ 
-                        message: 'Cadastro realizado com sucesso!',
-                        usuario_id: usuario_id
-                    });
-                });
-            });
+                    const usuario_id = usuarioResult.insertId;
+                    console.log('ID do usuário criado:', usuario_id);
+
+               
+                    //             connection.release();
+                                res.status(201).json({ 
+                                    message: 'Cadastro realizado com sucesso!',
+                                    usuario_id: usuario_id
+                                });
+                    //         });
+                    //     }
+                    // );
+                }
+            );
         });
     });
 });
 
+// Middleware de validação
+function validateRegistrationInput(req, res, next) {
+    const { email, nome, senha, telefone, data_nascimento } = req.body;
+    
+    if (!email || !nome || !senha || !telefone || !data_nascimento) {
+        return res.status(400).json({
+            error: 'Dados incompletos',
+            details: 'Todos os campos obrigatórios devem ser preenchidos'
+        });
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({
+            error: 'Email inválido',
+            details: 'O formato do email não é válido'
+        });
+    }
+    
+    next();
+}
+app.use('/api/cadastropaciente', validateRegistrationInput);
 // app.post('/api/cadastropaciente', (req, res) => {
 //     console.log('Recebida requisição de cadastro');
     
