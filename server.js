@@ -610,6 +610,10 @@ const pool1 = mysql.createPool({
     user: 'avnadmin',
     password: 'AVNS_7mS2Mw5mucKOdLbtk2L',
     database: 'amanimoyo',
+    port: 21180,                         // fornecido pelo Aiven (pode ser diferente!)
+    ssl: {
+       rejectUnauthorized: false,
+    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
