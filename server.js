@@ -239,10 +239,14 @@ app.get('/api/buscarUsuario/:id', async (req, res) => {
 
 // Pool de conexões MySQL
  const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
+    host: 'mysql-104b5784-amanimoyo.l.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_7mS2Mw5mucKOdLbtk2L',
     database: 'amanimoyo',
+    port: 21180,                         // fornecido pelo Aiven (pode ser diferente!)
+    ssl: {
+       rejectUnauthorized: false,
+    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -634,55 +638,143 @@ app.post('/api/cadastropaciente', (req, res) => {
                     details: err.message 
                 });
             }
-            connection.beginTransaction();
 
-            // Query para inserir usuário
-            const userQuery = 'INSERT INTO usuarios (nome, email, phone, senha, tipo, genero, data_nascimento,transtorno, biografia) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            const userQuery = `
+                INSERT INTO usuarios (nome, email, phone, senha, tipo, genero, data_nascimento, transtorno, biografia)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
             const userValues = [nome, email, telefone, senha, 'paciente', genero, data_nascimento, transtorno, biografia];
 
             console.log('Executando query de usuário:', userQuery, userValues);
 
-            connection.commit(); // Finaliza a transação corretamente
+            connection.query(userQuery, userValues, (err, usuarioResult) => {
+                if (err) {
+                    return connection.rollback(() => {
+                        connection.release();
+                        console.error('Erro na inserção do usuário:', err);
+                        if (err.code === 'ER_DUP_ENTRY') {
+                            res.status(409).json({ 
+                                error: 'Email já cadastrado',
+                                details: 'Um usuário com este email já existe no sistema' 
+                            });
+                        } else {
+                            res.status(500).json({ 
+                                error: 'Erro ao inserir usuário',
+                                details: err.message 
+                            });
+                        }
+                    });
+                }
 
-            connection.query(
-                userQuery,
-                userValues,
-                (err, usuarioResult) => {
+                const usuario_id = usuarioResult.insertId;
+                console.log('ID do usuário criado:', usuario_id);
+
+                connection.commit((err) => {
                     if (err) {
                         return connection.rollback(() => {
                             connection.release();
-                            console.error('Erro na inserção do usuário:', err);
-                            if (err.code === 'ER_DUP_ENTRY') {
-                                res.status(409).json({ 
-                                    error: 'Email já cadastrado',
-                                    details: 'Um usuário com este email já existe no sistema' 
-                                });
-                            } else {
-                                res.status(500).json({ 
-                                    error: 'Erro ao inserir usuário',
-                                    details: err.message 
-                                });
-                            }
+                            console.error('Erro ao finalizar transação:', err);
+                            res.status(500).json({ 
+                                error: 'Erro ao finalizar cadastro',
+                                details: err.message 
+                            });
                         });
                     }
 
-                    const usuario_id = usuarioResult.insertId;
-                    console.log('ID do usuário criado:', usuario_id);
-
-               
-                    //             connection.release();
-                                res.status(201).json({ 
-                                    message: 'Cadastro realizado com sucesso!',
-                                    usuario_id: usuario_id
-                                });
-                    //         });
-                    //     }
-                    // );
-                }
-            );
+                    connection.release();
+                    res.status(201).json({ 
+                        message: 'Cadastro realizado com sucesso!',
+                        usuario_id: usuario_id
+                    });
+                });
+            });
         });
     });
 });
+
+// app.post('/api/cadastropaciente', (req, res) => {
+//     console.log('Recebida requisição de cadastro');
+    
+//     const { 
+//         email, 
+//         nome,
+//         senha,
+//         telefone,
+//         data_nascimento,
+//         genero, 
+//         transtorno,
+//         biografia,
+//         objetivos,
+//     } = req.body;
+    
+//     console.log("Dados recebidos:", req.body);
+    
+//     pool.getConnection((err, connection) => {
+//         if (err) {
+//             console.error('Erro ao conectar ao banco:', err);
+//             return res.status(500).json({ 
+//                 error: 'Erro de conexão com o banco de dados',
+//                 details: err.message 
+//             });
+//         }
+
+//         connection.beginTransaction((err) => {
+//             if (err) {
+//                 connection.release();
+//                 return res.status(500).json({ 
+//                     error: 'Erro ao iniciar transação',
+//                     details: err.message 
+//                 });
+//             }
+//             connection.beginTransaction();
+
+//             // Query para inserir usuário
+//             const userQuery = 'INSERT INTO usuarios (nome, email, phone, senha, tipo, genero, data_nascimento,transtorno, biografia) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+//             const userValues = [nome, email, telefone, senha, 'paciente', genero, data_nascimento, transtorno, biografia];
+
+//             console.log('Executando query de usuário:', userQuery, userValues);
+
+//             connection.commit(); // Finaliza a transação corretamente
+
+//             connection.query(
+//                 userQuery,
+//                 userValues,
+//                 (err, usuarioResult) => {
+//                     if (err) {
+//                         return connection.rollback(() => {
+//                             connection.release();
+//                             console.error('Erro na inserção do usuário:', err);
+//                             if (err.code === 'ER_DUP_ENTRY') {
+//                                 res.status(409).json({ 
+//                                     error: 'Email já cadastrado',
+//                                     details: 'Um usuário com este email já existe no sistema' 
+//                                 });
+//                             } else {
+//                                 res.status(500).json({ 
+//                                     error: 'Erro ao inserir usuário',
+//                                     details: err.message 
+//                                 });
+//                             }
+//                         });
+//                     }
+
+//                     const usuario_id = usuarioResult.insertId;
+//                     console.log('ID do usuário criado:', usuario_id);
+
+               
+//                     //             connection.release();
+//                                 res.status(201).json({ 
+//                                     message: 'Cadastro realizado com sucesso!',
+//                                     usuario_id: usuario_id
+//                                 });
+//                     //         });
+//                     //     }
+//                     // );
+//                 }
+//             );
+//         });
+//     });
+// });
 
 // Middleware de validação
 function validateRegistrationInput(req, res, next) {
