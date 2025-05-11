@@ -707,7 +707,7 @@ function validateRegistrationInput(req, res, next) {
 }
 
 // Aplicar middleware de validação
-app.use('/api/cadastropaciente', validateRegistrationInput);
+// app.use('/api/cadastropaciente', validateRegistrationInput);
 app.listen(3000, () => {
     console.log('Servidor rodando na porta 3000');
 });
