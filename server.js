@@ -807,26 +807,26 @@ app.use('/api/cadastropaciente', validateRegistrationInput);
 // });
 
 // Middleware de validação
-function validateRegistrationInput(req, res, next) {
-    const { email, nome, senha, telefone, data_nascimento } = req.body;
+// function validateRegistrationInput(req, res, next) {
+//     const { email, nome, senha, telefone, data_nascimento } = req.body;
     
-    if (!email || !nome || !senha || !telefone || !data_nascimento) {
-        return res.status(400).json({
-            error: 'Dados incompletos',
-            details: 'Todos os campos obrigatórios devem ser preenchidos'
-        });
-    }
+//     if (!email || !nome || !senha || !telefone || !data_nascimento) {
+//         return res.status(400).json({
+//             error: 'Dados incompletos',
+//             details: 'Todos os campos obrigatórios devem ser preenchidos'
+//         });
+//     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            error: 'Email inválido',
-            details: 'O formato do email não é válido'
-        });
-    }
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(email)) {
+//         return res.status(400).json({
+//             error: 'Email inválido',
+//             details: 'O formato do email não é válido'
+//         });
+//     }
     
-    next();
-}
+//     next();
+// }
 
 // Aplicar middleware de validação
 // app.use('/api/cadastropaciente', validateRegistrationInput);
