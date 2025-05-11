@@ -682,6 +682,7 @@ app.post('/api/cadastropaciente', (req, res) => {
                     }
 
                     connection.release();
+                    console.log('Transação finalizada com sucesso');
                     res.status(201).json({ 
                         message: 'Cadastro realizado com sucesso!',
                         usuario_id: usuario_id
