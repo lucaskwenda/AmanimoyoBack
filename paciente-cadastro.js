@@ -165,9 +165,9 @@ function validateRegistrationInput(req, res, next) {
 // Aplicar middleware de validação
 app.use('/api/cadastropaciente', validateRegistrationInput);
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-});
+//const PORT = process.env.PORT || 4000;
+//app.listen(PORT, () => {
+//    console.log(`Servidor rodando na porta ${PORT}`);
+//});
 export default router;
 // export default app;
