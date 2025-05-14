@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Configuração do banco de dados
+//Configuração do banco de dados
 const pool = mysql.createPool({
     host: 'mysql-104b5784-amanimoyo.l.aivencloud.com',
     user: 'avnadmin',
@@ -24,6 +24,37 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
+// const pool = mysql.createPool({
+//     host: 'localhost',
+//     user: 'root',
+//     password: '',
+//     database: 'amanimoyo',
+//     waitForConnections: true,
+//     connectionLimit: 10,
+//     queueLimit: 0
+// });
+// rota para update user info
+app.put('/api/users/update', (req, res) => {
+  const { name, email, bio, phone, password, id } = req.body;
+
+  console.log("Dados recebidos:", req.body);
+
+  const query = `UPDATE usuarios SET nome = ?, email = ?, biografia = ?, phone = ?, senha = ? WHERE id = ?`;
+  const values = [name, email, bio, phone, password, id];
+
+  pool.query(query, values, (error, result) => {
+    if (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    res.json({ message: 'Usuário atualizado com sucesso.' });
+  });
+});
 // Rota para cadastro
 router.post('/', (req, res) => {
     console.log('Recebida requisição de cadastro');
@@ -134,9 +165,9 @@ function validateRegistrationInput(req, res, next) {
 // Aplicar middleware de validação
 app.use('/api/cadastropaciente', validateRegistrationInput);
 
-// const PORT = process.env.PORT || 4000;
-// app.listen(PORT, () => {
-//     console.log(`Servidor rodando na porta ${PORT}`);
-// });
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
 export default router;
 // export default app;
